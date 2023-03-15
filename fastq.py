@@ -1,4 +1,5 @@
-#***Download, validation, extraction, and quality check of SRA Data***#
+#***Compilation of three separate functions to Download, validation, extraction, and quality check of SRA Data***#
+
 #!/usr/bin/python3
 import sys
 import os
