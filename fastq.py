@@ -1,5 +1,4 @@
-#***Compilation of three separate functions to Download, validation, extraction, and quality check of SRA Data***#
-
+#***Download, validation, extraction, and quality check of SRA Data***#
 #!/usr/bin/python3
 import sys
 import os
@@ -7,7 +6,7 @@ import re
 import subprocess
 
 current_dir=os.getcwd()
-base_dir=current_dir+"/sra_base_Sstrain"
+base_dir=current_dir+"/sra_base"
 if not os.path.exists(base_dir):
     os.makedirs(base_dir)
 
@@ -21,7 +20,7 @@ if not os.path.exists(log_path):
 
 fastq_path=base_dir+"/fastq/"
 if not os.path.exists(fastq_path):
-    os.makedirs(fastq_path)
+    os.makedirs(log_path)
 
 user_input=input("Enter SRA IDs as a line separated text file:")
 assert os.path.exists(user_input), "I did not find the file at, " + str(user_input)
@@ -39,12 +38,10 @@ def download_sra(sra_ids):
             f.write(str(result)+"\n")
 
 def sra_to_fasta(sra_ids):
-    validation_path=base_dir +"/vdb_validate/"
+    valdation_path=base_dir +"/vdb_validate/"
     if not os.path.exists(validation_path):
         os.makedirs(validation_path)
     for counter, id in enumerate (sra_ids):
-        if(counter<=521):
-            continue
         sra_file= sra_path+id + "/" + id + ".sra"
         sralite_file=sra_path+id + "/" + id + ".sralite"
         vdb_out=validation_path+id+".vdb_out"
@@ -94,21 +91,20 @@ def qc_fastq(sra_ids):
     trimmed_fastq_path=base_dir+"/"+"trimmed_fastq/"
     if not os.path.exists(trimmed_fastq_path):
         os.makedirs(trimmed_fastq_path)
-    for counter, id in enumerate(sra_ids):
+    for id in sra_ids:
         f1=id+"_pass_1.fastq"
         f2=id+"_pass_2.fastq"
         trim1="trimmed_"+f1
         trim2="trimmed_"+f2
         out1=id+"_fastp"+".html"
         out2=id+"_fastp"+".json"
-        fastp="fastp --cut_right cut_right_mean_quality=30 cut_right_window_size=8 -c -i " + fastq_path+f1 + " -I " +fastq_path+f2 + \
-                " -o "+trimmed_fastq_path+trim1 + " -O "+trimmed_fastq_path+trim2 + " -h "+qc_path+out1 + " -j "+qc_path+out2 
+        fastp="fastp --cut_right --cut_front --cut_right_mean_quality=30 --cut_front_mean_quality=30 -c -i " + fastq_path+f1 + " -I "\
+         +fastq_path+f2 + " -o "+trimmed_fastq_path+trim1 + " -O "+trimmed_fastq_path+trim2 + " -h "+qc_path+out1 + " -j "+qc_path+out2 
         result=subprocess.run(fastp, shell=True, executable="/bin/bash", capture_output=True)
-        print("processing sra file:", counter)
         logfile=log_path+"fastp.log"
         with open(logfile, 'a') as f:
             f.write(str(result)+"\n")
 
 #download_sra(sra_ids)
-#sra_to_fasta(sra_ids)
+sra_to_fasta(sra_ids)
 qc_fastq(sra_ids)
